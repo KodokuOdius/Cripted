@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+
+
+{% block main %}
+
+{% if user.is_authenticated %}
+{{user.username}}
+{{user.email}}
+{% if masterpass %}
+{{ masterpass }}
+{% endif %}
+
+<a href="./" id="logout">Log-out</a>
+{% else %}
+
+
+
+{% if not form %}
+    Server Error
+{% endif %}
+<h1>Log-in</h1>
+<p>Please, use the following form to log-in:</p>
+<form action="." method="post">
+    {{ form.as_p }}
+      {% csrf_token %}
+    <p><input type="submit" value="Log-in"></p>
+</form>
+
+{% endif %}
+
+{% endblock main %}
+
+
+{% block js %}
+{% if user.is_authenticated %}
+document.querySelector("#logout").addEventListener("click", event => {
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.open("GET", "./?act=logout", false);
+    xmlHttp.send();
+})
+{% endif %}
+{% endblock js %}
