@@ -7,24 +7,79 @@ from django import forms
 from django.http import HttpRequest
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
-# from django.utils.translation import ugettext_lazy as _
+from django.core.validators import validate_email
+from . import models
+from . import chiper
 
 from typing import *
 
 
 # Create your views here.
-class LogInForm(forms.Form):
+class UserForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
     masterpass = forms.CharField(widget=forms.PasswordInput)
 
     def clean_masterpass(self):
-        masterpass = self.cleaned_data['masterpass']
+        masterpass = self.cleaned_data["masterpass"]
 
-        if masterpass.lower() == self.cleaned_data["password"].lower():
-            raise ValidationError('the Masterpass should not similar like a Password')
+        user = User.objects.get(username=self.cleaned_data["username"])
+        private = str.encode(models.UserKey.objects.get(user_id=user.pk).private)
+
+        if not chiper.is_masterpass(private, masterpass=str(self.cleaned_data["masterpass"])):
+            raise ValidationError("Incorrect Masterpass")
 
         return masterpass
+
+class CreateUserForm(forms.ModelForm):
+    repeated = forms.CharField(widget=forms.PasswordInput, label="Repeat Password")
+    masterpass = forms.CharField(widget=forms.PasswordInput)
+
+    def clean_repeated(self):
+        if repeated := self.cleaned_data["repeated"] != self.cleaned_data["password"]:
+            raise ValidationError("Passwords don`t match")
+        return repeated
+
+    def clean_masterpass(self):
+        masterpass = self.cleaned_data["masterpass"]
+
+        if masterpass.lower() == self.cleaned_data["password"].lower():
+            raise ValidationError("the Masterpass should not similar like a Password")
+
+        return masterpass
+    class Meta:
+        model = User
+        fields = ["username", "email", "password"]
+        widgets = {
+            "password": forms.PasswordInput,
+        }
+
+class PasswordForm(forms.ModelForm):
+    masterpass = forms.CharField(widget=forms.PasswordInput)
+
+    @classmethod
+    def add_user(cls, user):
+        cls.user = user
+        # print("USER_USER_USER", user.pk)
+
+    def clean_masterpass(self):
+        masterpass = self.cleaned_data["masterpass"]
+
+        user = User.objects.get(username=self.user)
+        private = str.encode(models.UserKey.objects.get(user_id=user.pk).private)
+
+        if not chiper.is_masterpass(private, masterpass=self.cleaned_data["masterpass"]):
+            raise ValidationError("Incorrect Masterpass")
+
+        return masterpass
+
+    class Meta:
+        model = models.UserPassword
+        fields = ["login", "password"]
+        widgets = {
+            "password": forms.PasswordInput
+        }
+
 
 
 class HomeView(View):
@@ -36,38 +91,122 @@ class HomeView(View):
         return render(request, self.template_name, context=self.get_context_data(*args, **kwargs))
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        print("POST", *request.POST.keys())
-        self.form = LogInForm(request.POST)
+        # print("POST", *request.POST.keys())
+
+        if request.user.is_authenticated:
+            form = PasswordForm(request.POST or None)
+            form.add_user(request.user)
+            if form.is_valid():
+                clean = form.cleaned_data
+                public = models.UserKey.objects.get(user_id=request.user.id).public
+
+                # encrypt_session, nonce, tag, chiper_text = chiper.encrypt(public, str.encode(clean["password"]))
+                # all bytes
+                # print(type(encrypt_session), type(nonce), type(tag), type(chiper_text))
+
+                # lambda _bytes: _bytes.decode()
+                models.UserPassword.objects.create(
+                    user=request.user,
+                    login=clean["login"],
+                    password="===()===".join(map(lambda _bytes: _bytes.decode(encoding="latin-1"), chiper.encrypt(str.encode(public), str.encode(clean["password"]))))
+                )
+
+                return HttpResponseRedirect(reverse_lazy("main"))
+            else:
+                return self.render(request, passform=form, *args, **kwargs)
+
+        self.form = UserForm(request.POST)
         if self.form.is_valid():
             clean = self.form.cleaned_data
-            user = authenticate(username=clean['username'], password=clean['password'])
+            user = authenticate(username=clean["username"], password=clean["password"])
             if user is not None:
                 if user.is_active:
                     login(request, user)
                     request.session["master"] = request.POST.get("masterpass")
-                    return HttpResponseRedirect(reverse_lazy('main'))
+                    return HttpResponseRedirect(reverse_lazy("main"))
 
         return self.render(request, *args, **kwargs)
 
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        print("GET", *request.GET.keys())
-        print(*request.COOKIES.items())
-        master = None
+        # print("GET", *request.GET.keys())
+        # master = None
+        passwords = []
         if not request.user.is_authenticated:
-            self.form = LogInForm()
+            self.form = UserForm()
             self.title = "Login Page"
+        elif master := request.session.get("master"):
+            # master = request.session.get("master")
+            request.session["master"] = None
+            for user_data in models.UserPassword.objects.filter(user=request.user):
+                try:
+                    encrypt_session, nonce, tag, chiper_text = map(lambda part: str.encode(part, encoding="latin-1"), user_data.password.split("===()==="))
+                    private = str.encode(models.UserKey.objects.get(user=request.user).private)
+                    password = chiper.decrypt(
+                            private=private, masterpass=master,
+                            encrypt_session=encrypt_session, tag=tag,
+                            nonce=nonce, cryped_data=chiper_text
+                        )
+                    passwords.append((user_data.login, password.decode()))
+                except Exception as ex:
+                    print(ex)
             
         if request.GET.get("act", "") == "logout" and request.user.is_authenticated:
             logout(request)
-            return HttpResponseRedirect(reverse_lazy('main'))
-        if request.session.get("master", None):
-            master = request.session.get("master", None)
-            request.session["master"] = None
+            return HttpResponseRedirect(reverse_lazy("main"))
             
-        return self.render(request, *args, **kwargs, masterpass=master)
+        return self.render(request, passwords=passwords, *args, **kwargs)
 
 
-    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
-        print("CONTEXT DATA -> ", kwargs.get("masterpass"))
-        context = {"title": self.title, "form": self.form, "masterpass": kwargs.get("masterpass")}
+    def get_context_data(self, **kwargs) -> Dict[str, Any]:
+        # print("CONTEXT DATA -> ", kwargs.get("masterpass"))
+        context = {"title": self.title, "form": self.form}
+        return context | kwargs
+
+
+class CreateUser(View):
+    form = None
+
+    def render(self, request, *args, **kwargs):
+        return render(request, "./site/create.html", context=self.get_context_data(*args, **kwargs))
+
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        self.form = CreateUserForm(request.POST)
+        if self.form.is_valid():
+            clean = self.form.cleaned_data
+            user = User.objects.create_user(username=clean["username"], email=clean["email"])
+            user.set_password(clean["password"])
+            user.save()
+            public, private = chiper.get_keys(masterpass=clean["masterpass"])
+
+            models.UserKey.objects.create(
+                user=user,
+                public=public.decode(),
+                private=private.decode()
+            )
+            print("===========> CREATION DONE!")
+
+            return HttpResponseRedirect(reverse_lazy("main"))
+
+        return self.render(request, *args, **kwargs)
+
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        if request.user.is_authenticated:
+            return HttpResponseRedirect(reverse_lazy("main"))
+        else:
+            self.form = CreateUserForm()
+        return self.render(request, *args, **kwargs)
+
+
+    def get_context_data(self, **kwargs):
+        context = {"title": "Creation", "form": self.form}
         return context
+
+
+def passform(request):
+    return render(
+        request,
+        template_name="./site/passform.html",
+        context={"passform": PasswordForm()}
+    )

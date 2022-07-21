@@ -1,0 +1,7 @@
+<div class="passform">
+    <form action="." method="post">
+        {{passform.as_p}}
+        {% csrf_token %}
+        <p><input type="submit" value="ADD"></p>
+    </form>    
+</div>
