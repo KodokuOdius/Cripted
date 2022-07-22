@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 
 
 class UserKey(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="owner")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="owner", primary_key=True)
+    # user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="owner")
     public = models.TextField(verbose_name="public_key")
     private = models.TextField(verbose_name="private_key")
 

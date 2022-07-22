@@ -81,6 +81,32 @@ class PasswordForm(forms.ModelForm):
         }
 
 
+class ShareForm(forms.Form):
+    login = forms.CharField()#disabled=True)
+    user = forms.CharField()
+    masterpass = forms.CharField(widget=forms.PasswordInput)
+
+    @classmethod
+    def add_user(cls, user):
+        cls.user = user
+
+    def clean_user(self):
+        if not User.objects.get(username=(user := self.cleaned_data["user"])):
+            raise ValidationError("No such User")
+        return user
+
+    def clean_masterpass(self):
+        masterpass = self.cleaned_data["masterpass"]
+
+        user = User.objects.get(username=self.user)
+        private = str.encode(models.UserKey.objects.get(user_id=user.pk).private)
+
+        if not chiper.is_masterpass(private, masterpass=self.cleaned_data["masterpass"]):
+            raise ValidationError("Incorrect Masterpass")
+
+        return masterpass
+
+
 
 class HomeView(View):
     template_name="./site/main.html"
@@ -94,6 +120,43 @@ class HomeView(View):
         # print("POST", *request.POST.keys())
 
         if request.user.is_authenticated:
+            print("===========> FORM POST", *request.POST.items())
+            if request.POST.get("user"):
+                share_form = ShareForm(request.POST or None)
+                share_form.add_user(request.user)
+                if share_form.is_valid():
+                    clean = share_form.cleaned_data
+
+                    recipient = User.objects.get(username=clean["user"])
+                    print(recipient)
+                    public_recipient = models.UserKey.objects.get(user_id=recipient.pk).public
+                    password = models.UserPassword.objects.get(login=clean["login"]).password
+                    private = models.UserKey.objects.get(user_id=request.user.id).private
+                    master = clean["masterpass"]
+
+                    encrypt_session, nonce, tag, chiper_text = map(lambda part: str.encode(part, encoding="latin-1"), password.split("===()==="))
+                    decrypted_password = chiper.decrypt(
+                            private=str.encode(private), masterpass=master,
+                            encrypt_session=encrypt_session, tag=tag,
+                            nonce=nonce, cryped_data=chiper_text
+                        )
+
+                    models.UserPassword.objects.create(
+                        user=recipient,
+                        login=clean["login"],
+                        password="===()===".join(map(
+                            lambda _bytes: _bytes.decode(encoding="latin-1"),
+                            chiper.encrypt(str.encode(public_recipient), data=decrypted_password)
+                            ))
+                    )
+
+
+                    print("===========> DONE SHARE!")
+
+                    return HttpResponseRedirect(reverse_lazy("main"))
+                else:
+                    return self.render(request, modal=share_form, *args, **kwargs)
+
             form = PasswordForm(request.POST or None)
             form.add_user(request.user)
             if form.is_valid():
@@ -104,11 +167,13 @@ class HomeView(View):
                 # all bytes
                 # print(type(encrypt_session), type(nonce), type(tag), type(chiper_text))
 
-                # lambda _bytes: _bytes.decode()
                 models.UserPassword.objects.create(
                     user=request.user,
                     login=clean["login"],
-                    password="===()===".join(map(lambda _bytes: _bytes.decode(encoding="latin-1"), chiper.encrypt(str.encode(public), str.encode(clean["password"]))))
+                    password="===()===".join(map(
+                        lambda _bytes: _bytes.decode(encoding="latin-1"), 
+                        chiper.encrypt(str.encode(public), str.encode(clean["password"]))
+                        ))
                 )
 
                 return HttpResponseRedirect(reverse_lazy("main"))
@@ -201,7 +266,7 @@ class CreateUser(View):
 
     def get_context_data(self, **kwargs):
         context = {"title": "Creation", "form": self.form}
-        return context
+        return context | kwargs
 
 
 def passform(request):
@@ -210,3 +275,12 @@ def passform(request):
         template_name="./site/passform.html",
         context={"passform": PasswordForm()}
     )
+
+def modalpass(request):
+    return render(
+        request,
+        template_name="./site/modalpass.html",
+        context={"modal": ShareForm()}
+    )
+
+
