@@ -52,7 +52,9 @@ class CreateUserForm(forms.ModelForm):
         fields = ["username", "email", "password"]
         widgets = {
             "password": forms.PasswordInput,
+            "email": forms.TextInput(attrs={ 'required': 'true' })
         }
+        help_texts = {"username": None}
 
 class PasswordForm(forms.ModelForm):
     masterpass = forms.CharField(widget=forms.PasswordInput)
@@ -109,12 +111,16 @@ class ShareForm(forms.Form):
 
 
 class HomeView(View):
-    template_name="./site/main.html"
+    # template_name="./site/main.html"
     title = "Main Page"
     form = None
 
     def render(self, request, *args, **kwargs):
-        return render(request, self.template_name, context=self.get_context_data(*args, **kwargs))
+        if request.user.is_authenticated:
+            template_name = "./site/home.html"
+        else:
+            template_name = "./site/land.html"
+        return render(request, template_name, context=self.get_context_data(*args, **kwargs))
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         # print("POST", *request.POST.keys())
@@ -272,15 +278,15 @@ class CreateUser(View):
 def passform(request):
     return render(
         request,
-        template_name="./site/passform.html",
-        context={"passform": PasswordForm()}
+        template_name="./site/modalpass.html",
+        context={"modal": PasswordForm(), "btn": "add"}
     )
 
 def modalpass(request):
     return render(
         request,
         template_name="./site/modalpass.html",
-        context={"modal": ShareForm()}
+        context={"modal": ShareForm(), "btn": "Share"}
     )
 
 

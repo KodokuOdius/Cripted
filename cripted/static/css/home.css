@@ -1,0 +1,132 @@
+body {
+    background: url("../img/backhome.jpg") no-repeat;
+    background-size: cover;
+}
+
+div.container {
+    justify-content: space-between;
+}
+
+div.profile {
+    border: 5px double #131313;
+    border-radius: 10px 75px 10px 10px;
+    padding: 5px 10px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 25px;
+    left: 50px;
+}
+
+div.user {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+div.user div.profile_img img {
+    border-radius: 100px;
+    height: 130px;
+    width: 130px;
+}
+
+div.user .user_info {
+    text-align: center;
+    margin: 5px 0 15px 20px;
+    border-left: 2px solid #131313;
+    padding: 0px 10px;
+}
+
+div.user .username {
+    font-size: 20pt;
+}
+
+div.user .email {
+    font-size: 13pt;
+}
+
+div.control {
+    border-top: 3px dashed #131313;
+    display: flex;
+    flex-direction: column;
+}
+
+div.control a.logout_btn {
+    text-align: center;
+    margin: 10px 5px;
+    text-decoration: none;
+    color: #131313;
+    font-size: 14pt;
+}
+
+div.control .add_password {
+    margin: 10px 35px;
+    padding: 5px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    word-spacing: 3px;
+    font-weight: 700;
+}
+
+div.passwords {
+    margin-top: 25px;
+    width: 62%;
+    border-top: 2px solid #131313;
+    border-left: 2px solid #131313;
+    padding: 5px;
+    padding-right: 20%;
+}
+
+ul.passwords_list {
+    margin-left: 10px;
+}
+li.password_item:not(:first-child) {
+    margin-top: 10px;
+    padding-top: 5px;
+    border-top: 2px dashed #131313;
+}
+div.secter {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+div.secter p {
+    margin: 0;
+}
+div.data {
+    width: 55%;
+}
+div.secter p.login {
+    font-size: 18pt;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+div.secter p.pass {
+    font-size: 16pt;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+span.datum {
+    font-size: 14pt;
+}
+div.panel {
+    display: flex;
+    flex-direction: column;
+    width: 30%;
+}
+div.secter button {
+    padding: 2px 0;
+    text-transform: uppercase;
+    border-radius: 5px;
+    font-weight: bold;
+}
+div.secter button:not(:first-child) {
+    margin-top: 2px;
+}

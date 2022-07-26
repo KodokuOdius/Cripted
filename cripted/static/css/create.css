@@ -1,0 +1,52 @@
+ul.errorlist {
+    position: fixed;
+    display:none;
+}
+div.errors {
+    border: 2px solid red;
+    width: 400px;
+    border-radius: 10px;
+    margin: 95px -150px auto 0;
+    padding-inline: 20px;
+    padding-bottom: 15px;
+    background: url("../img/backerror.jpg") no-repeat center;
+    background-size: 850px;
+}
+div.errors div.head {
+    text-align: center;
+}
+div.errors div.head p.hint {
+    border-bottom: 3px solid black;
+    margin-top: 0;
+    margin-inline: 10px;
+    color: green;
+}
+/* div.error {
+    display: flexbox;
+} */
+div.error p {
+    margin: 0;
+}
+div.error p.error_field {
+    margin-top: 5px;
+    text-align: left;
+    height: 35px;
+}
+div.error p.error_field span.name {
+    text-transform: uppercase;
+    padding-inline: 10px;
+    background-color: #eaeaea;
+    border-radius: 5px;
+}
+div.error p.error_text {
+    text-align: right;
+    margin-left: 25%;
+    align-items: center;
+    height: 35px;
+    color: rgba(210, 50, 30, 0.8);
+    font-size: 15pt;
+    height: auto;
+}
+div.error p.error_text::first-letter {
+    color: black;
+}

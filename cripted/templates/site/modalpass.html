@@ -1,10 +1,14 @@
+{% load static %}
+<link rel="stylesheet" href="{% static './css/modal.css' %}">
 <div class="modal">
     <div class="window">
         <a href="#" class="close" onclick="delForm(event)">Х</a>
         <form action="." method="post">
                 {{modal.as_p}}
                 {% csrf_token %}
-            <p><button type="submit" class="share_btn">Share</button></p>
+            <p><button type="submit" class="modal_btn">
+                {{btn}}
+            </button></p>
         </form>
     </div>
 </div>

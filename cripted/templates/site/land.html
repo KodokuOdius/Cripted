@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static './css/main.css' %}">
+{% endblock css %}
+
+{% block main %}
+    <div class="container">
+        <div class="inner_form">
+            <div class="head">
+
+                <h2 class="title">Secure Your Passwords</h2>
+                <p class="create">
+                    Add account to the system <a href="./create" class="plus"> </a>
+                </p>
+            </div>
+            <div class="form">
+                <form action="." method="post">
+                    {{ form.as_p }}
+                    {% csrf_token %}
+                    <p class="btn">
+                        <input type="submit" value="Log-in">
+                    </p>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock main %}

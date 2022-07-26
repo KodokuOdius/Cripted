@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %}
+<link rel="stylesheet" href="{% static './css/main.css' %}">
+<link rel="stylesheet" href="{% static './css/home.css' %}">
+{% endblock css %}
+
+{% block main %}
+
+{% if user.is_authenticated %}
+
+
+
+<div class="container">
+
+    <div class="profile">
+        <div class="user">
+            <div class="profile_img">
+                <img src="{% static './img/profile.png' %}" alt="">
+            </div>
+            <div class="user_info">
+                <h2 class="username">
+                    {{user.username}}
+                </h2>
+                <h3 class="email">
+                    {% if user.email %}
+                        {{user.email}}
+                    {% else %}
+                        uSerwIthoUteMail@with.out
+                    {% endif %}
+                </h3>
+            </div>
+        </div>
+
+        <div class="control">
+            <button class="add_password">Add password</button>
+
+            <a href="./" id="logout" class="logout_btn">Log-out &#128682;</a>
+        </div>
+
+    </div>
+    <div class="empty">
+    </div>
+
+    <div class="passwords">
+        <ul class="passwords_list">
+            <li class="password_item">
+                <div class="secter">
+                    <div class="data">
+                        <p class="login">
+                            Login: <span class="datum">qwe</span>
+                        </p>
+                        <p class="pass">
+                            Password: <span class="datum">qweqwe</span>
+                        </p>
+                    </div>
+                    <div class="panel">
+                        <button class="view">View &#128065;</button>
+                        <button class="delete">Delete</button>
+                        <button class="edit">Edit</button>
+                        <button class="share">Share &#9874;</button>
+                    </div>
+                </div>
+            </li>
+            <li class="password_item">
+                <div class="secter">
+                    <div class="data">
+                        <p class="login">
+                            Login: <span class="datum">qwe</span>
+                        </p>
+                        <p class="pass">
+                            Password: <span class="datum">qweqwe</span>
+                        </p>
+                    </div>
+                    <div class="panel">
+                        <button class="view">View &#128065;</button>
+                        <button class="delete">Delete</button>
+                        <button class="edit">Edit</button>
+                        <button class="share">Share &#9874;</button>
+                    </div>
+                </div>
+            </li>
+            {% for login, password in passwords %}
+                <li class="password_item">
+                    <div class="secter">
+                        <div class="data">
+                            <p class="login">
+                                Login: <span class="datum">{{login}}</span>
+                            </p>
+                            <p class="pass">
+                                Password: <span class="datum">{{password}}</span>
+                            </p>
+                        </div>
+                        <div class="panel">
+                            <button class="view">View &#128065;</button>
+                            <button class="delete">Delete</button>
+                            <button class="edit">Edit</button>
+                            <button class="share">Share &#9874;</button>
+                        </div>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% else %}
+
+Server Error
+
+{% endif %}
+
+
+{% if modal %}
+    <div class="modal">
+        <div class="window">
+            <a href="#" class="close" onclick="delForm(event)">Х</a>
+            <form action="." method="post">
+                    {{modal.as_p}}
+                    {% csrf_token %}
+                <p><button type="submit" class="modal_btn">{{btn}}</button></p>
+            </form>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock main %}
+
+
+{% block js %}
+    {% if user.is_authenticated %}
+        <script src="{% static './js/main.js' %}"></script>
+    {% endif %}
+{% endblock js %}

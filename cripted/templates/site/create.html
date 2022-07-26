@@ -1,14 +1,55 @@
 {% extends 'base.html' %}
+{% load static %}
 
+{% block css %}
+<link rel="stylesheet" href="{% static './css/main.css' %}">
+<link rel="stylesheet" href="{% static './css/create.css' %}">
+{% endblock css %}
 
 
 {% block main %}
-<h2>Create new Account</h2>
+<div class="container">
+    {% if form.errors %}
+        <div class="errors">
+            <div class="head">
+                <h2 class="title">
+                    Catched some Errors
+                </h2>
+                <p class="hint">
+                    Please be careful and remember all inputs
+                </p>
+            </div>
+            {% for field in form %}
+                {% for error in field.errors %}
+                <div class="error">
+                    <p class="error_field">
+                        Field name: <span class="name">
+                            {{ field.label }}
+                        </span>
+                    </p>
+                    <p class="error_text">
+                        &#10149;
+                        {{ error|cut:"." }}
+                    </p>
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    {% endif %}
 
-<form action="." method="post">
-    {{ form.as_p }}
-    {% csrf_token %}
-    <p><input type="submit" value="Create"></p>
-</form>
+
+    <div class="inner_form">
+        <div class="head">
+            <h2 class="title">add new Account</h2>
+        </div>
+        <div class="form">
+            <form action="." method="post">
+                {{ form.as_p }}
+                {% csrf_token %}
+                <p class="btn"><input type="submit" value="Create"></p>
+            </form>
+        </div>
+    </div>
+</div>
 
 {% endblock main %}
