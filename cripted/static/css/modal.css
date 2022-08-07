@@ -7,6 +7,7 @@
     background-color: rgba(0, 0, 0, .5);
     z-index: 20;
     transition: .3s all;
+    font-size: 14pt;
 }
 
 .modal .window {
@@ -25,4 +26,40 @@
     border-radius: 3px;
     background-color: #fff;
     transition: 0.3s all;
+}
+
+.model_body {
+    display: flex;
+    flex-direction: column;
+    width: 400px;
+    margin: 0 auto;
+}
+.model_body p {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    height: 25px;
+}
+.close {
+    max-width: 500px;
+    width: 100%;
+    text-align: right;
+    padding-right: 25px;
+    margin: 0;
+}
+.close a {
+    text-decoration: none;
+    color: #131313;
+}
+.modal_btn {
+    margin-top: 15px;
+}
+
+.modal_btn .modal_btn_inner {
+    width: 250px;
+    font-size: 14pt;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 5px 0;
+    border-radius: 5px;
 }

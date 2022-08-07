@@ -14,7 +14,6 @@ from . import chiper
 from typing import *
 
 
-# Create your views here.
 class UserForm(forms.Form):
     username = forms.CharField()
     password = forms.CharField(widget=forms.PasswordInput)
@@ -84,7 +83,7 @@ class PasswordForm(forms.ModelForm):
 
 
 class ShareForm(forms.Form):
-    login = forms.CharField()#disabled=True)
+    login = forms.CharField()# disabled=True)
     user = forms.CharField()
     masterpass = forms.CharField(widget=forms.PasswordInput)
 
@@ -108,6 +107,24 @@ class ShareForm(forms.Form):
 
         return masterpass
 
+class DeleteForm(forms.Form):
+    login = forms.CharField() # disabled=True)
+    masterpass = forms.CharField(widget=forms.PasswordInput)
+
+    @classmethod
+    def add_user(cls, user):
+        cls.user = user
+
+    def clean_masterpass(self):
+        masterpass = self.cleaned_data["masterpass"]
+
+        user = User.objects.get(username=self.user)
+        private = str.encode(models.UserKey.objects.get(user_id=user.pk).private)
+
+        if not chiper.is_masterpass(private, masterpass=self.cleaned_data["masterpass"]):
+            raise ValidationError("Incorrect Masterpass")
+
+        return masterpass
 
 
 class HomeView(View):
@@ -123,8 +140,6 @@ class HomeView(View):
         return render(request, template_name, context=self.get_context_data(*args, **kwargs))
 
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
-        # print("POST", *request.POST.keys())
-
         if request.user.is_authenticated:
             print("===========> FORM POST", *request.POST.items())
             if request.POST.get("user"):
@@ -134,7 +149,7 @@ class HomeView(View):
                     clean = share_form.cleaned_data
 
                     recipient = User.objects.get(username=clean["user"])
-                    print(recipient)
+                    # print(recipient)
                     public_recipient = models.UserKey.objects.get(user_id=recipient.pk).public
                     password = models.UserPassword.objects.get(login=clean["login"]).password
                     private = models.UserKey.objects.get(user_id=request.user.id).private
@@ -156,12 +171,24 @@ class HomeView(View):
                             ))
                     )
 
-
-                    print("===========> DONE SHARE!")
+                    # print("===========> DONE SHARE!")
 
                     return HttpResponseRedirect(reverse_lazy("main"))
                 else:
                     return self.render(request, modal=share_form, *args, **kwargs)
+
+            if len(request.POST.keys()) == 3:
+                delete_form = DeleteForm(request.POST or None)
+                delete_form.add_user(request.user)
+                if delete_form.is_valid():
+                    login_pass = request.POST.get("login")
+                    password = models.UserPassword.objects.get(user_id=request.user.pk, login=login_pass)
+                    password.delete()
+                    print("Deleted")
+
+                    return HttpResponseRedirect(reverse_lazy("main"))
+                else:
+                    return self.render(request, modal=delete_form, *args, **kwargs)
 
             form = PasswordForm(request.POST or None)
             form.add_user(request.user)
@@ -275,18 +302,24 @@ class CreateUser(View):
         return context | kwargs
 
 
-def passform(request):
+def add_pass(request):
     return render(
         request,
         template_name="./site/modalpass.html",
         context={"modal": PasswordForm(), "btn": "add"}
     )
 
-def modalpass(request):
+def share_pass(request):
     return render(
         request,
         template_name="./site/modalpass.html",
-        context={"modal": ShareForm(), "btn": "Share"}
+        context={"modal": ShareForm(), "btn": "share"}
     )
 
+def delete_pass(request):
+    return render(
+        request,
+        template_name="./site/modalpass.html",
+        context={"modal": DeleteForm(), "btn": "delete"}
+    )
 

@@ -1,14 +1,15 @@
 function delForm(event) {
     event.preventDefault();
-    event.currentTarget.parentElement.parentElement.remove();
-    console.log(document.cookie);
+    document.querySelector(".modal").remove();
+    // console.log(document.cookie);
+    document.cookie = "";
 }
 
-function getForm() {
-    const xhr = new XMLHttpRequest()
-    xhr.open("GET", "./api/passform", false)
-    xhr.send()
-    return xhr.response
+function getModal(url) {
+    const xml = new XMLHttpRequest();
+    xml.open("GET", url, false);
+    xml.send();
+    return xml.response;
 }
 
 document.querySelector("#logout").addEventListener("click", event => {
@@ -20,24 +21,31 @@ document.querySelector("#logout").addEventListener("click", event => {
 document.querySelector(".add_password").addEventListener("click", event => {
     const passwords = document.querySelector(".passwords");
     if (passwords.querySelector(".passform") === null) {
-        passwords.insertAdjacentHTML("beforeend", getForm());
+        passwords.insertAdjacentHTML("beforeend", getModal("./api/pass.add"));
     } else {
         return "";
     }
 })
 
-function getModal() {
-    const xml = new XMLHttpRequest();
-    xml.open("GET", "./api/modalpass", false);
-    xml.send();
-    return xml.response;
+function shareBtn(event) {
+    const btn = event.currentTarget;
+    const login = btn.parentElement.previousElementSibling.querySelector(".datum").textContent;
+    document.querySelector("body").insertAdjacentHTML("beforeend", getModal("./api/pass.share"));
+    document.querySelector(".modal").querySelector("input").value = login;
 }
 
-document.addEventListener("click", event => {
-    const btn = event.target;
-    if (btn.nodeName === "BUTTON" && btn.classList.contains("share")) {
-        const login = btn.previousElementSibling.previousElementSibling.textContent;
-        document.querySelector("body").insertAdjacentHTML("beforeend", getModal());
-        document.querySelector(".modal").querySelector("input").value = login;
-    }
-})
+function deletePass(event) {
+    const btn = event.currentTarget;
+    const login = btn.parentElement.previousElementSibling.querySelector(".datum").textContent;
+    document.querySelector("body").insertAdjacentHTML("beforeend", getModal("./api/pass.delete"));
+    document.querySelector(".modal").querySelector("input").value = login;
+}
+
+function viewToggle(event) {
+    password = event.currentTarget.parentElement.previousElementSibling.querySelector(".secret_password");
+    if (password.type === "password") {
+        password.type = "text";
+    } else {
+        password.type = "password";
+    };
+}

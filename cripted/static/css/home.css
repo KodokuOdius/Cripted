@@ -115,7 +115,21 @@ div.secter p.pass {
 }
 span.datum {
     font-size: 14pt;
+    padding-inline: 5px;
 }
+input.secret_password {
+    outline: none;
+    border: none;
+    text-align: right;
+    width: 50%;
+    border-radius: 4px;
+    font-size: 12pt;
+    background-color: none;
+    color: #131313;
+    padding-inline: 5px;
+    font-weight: 600;
+}
+
 div.panel {
     display: flex;
     flex-direction: column;

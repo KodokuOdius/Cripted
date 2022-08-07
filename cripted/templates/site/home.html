@@ -45,42 +45,30 @@
 
     <div class="passwords">
         <ul class="passwords_list">
-            <li class="password_item">
+            {% comment %} <li class="password_item">
+                <!--
+                    Test list item
+                -->
+                
                 <div class="secter">
                     <div class="data">
                         <p class="login">
                             Login: <span class="datum">qwe</span>
                         </p>
                         <p class="pass">
-                            Password: <span class="datum">qweqwe</span>
+                            Password: 
+                            <input type="password" class="secret_password" name="password" value="qweqwe" disabled>
                         </p>
                     </div>
                     <div class="panel">
-                        <button class="view">View &#128065;</button>
-                        <button class="delete">Delete</button>
-                        <button class="edit">Edit</button>
-                        <button class="share">Share &#9874;</button>
+                        <button class="view" onmouseenter="viewToggle(event);" onmouseleave="viewToggle(event);">View &#128065;</button>
+                        <button class="delete" onclick="deletePass(event)">Delete &#128465;</button>
+                        <button class="edit">Edit &#9998;</button>
+                        <button class="share" onclick="shareBtn(event)">Share &#9993;</button>
                     </div>
                 </div>
-            </li>
-            <li class="password_item">
-                <div class="secter">
-                    <div class="data">
-                        <p class="login">
-                            Login: <span class="datum">qwe</span>
-                        </p>
-                        <p class="pass">
-                            Password: <span class="datum">qweqwe</span>
-                        </p>
-                    </div>
-                    <div class="panel">
-                        <button class="view">View &#128065;</button>
-                        <button class="delete">Delete</button>
-                        <button class="edit">Edit</button>
-                        <button class="share">Share &#9874;</button>
-                    </div>
-                </div>
-            </li>
+            </li> {% endcomment %}
+
             {% for login, password in passwords %}
                 <li class="password_item">
                     <div class="secter">
@@ -89,14 +77,15 @@
                                 Login: <span class="datum">{{login}}</span>
                             </p>
                             <p class="pass">
-                                Password: <span class="datum">{{password}}</span>
+                                Password: 
+                                <input type="password" class="secret_password" name="password" value="qweqwe" disabled>
                             </p>
                         </div>
                         <div class="panel">
-                            <button class="view">View &#128065;</button>
-                            <button class="delete">Delete</button>
-                            <button class="edit">Edit</button>
-                            <button class="share">Share &#9874;</button>
+                            <button class="view" onmouseenter="viewToggle(event);" onmouseleave="viewToggle(event);">View &#128065;</button>
+                            <button class="delete" onclick="deletePass(event)">Delete &#128465;</button>
+                            {% comment %} <button class="edit">Edit &#9998;</button> {% endcomment %}
+                            <button class="share" onclick="shareBtn(event)">Share &#9993;</button>
                         </div>
                     </div>
                 </li>
